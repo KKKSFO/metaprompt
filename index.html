@@ -526,7 +526,7 @@
         <span class="wordmark wordmark-small flip-reveal">MetaPrompt</span>
       </div>
       <div class="footer-links">
-        <span class="label flip-reveal">Optimisation engine powered by Grok</span>
+        <span class="label flip-reveal">Optimisation engine powered by OpenCode Zen</span>
       </div>
     </div>
     <div class="hairline-full" style="margin: 1.5rem 0 0 0;"></div>
@@ -535,7 +535,6 @@
     </div>
   </footer>
 
-  <script src="config.js"></script>
   <script>
     /* ============================================================
        MetaPrompt — Application Logic
@@ -627,20 +626,11 @@
       const modelId = modelSelect.value;
       const model = models.find(m => m.id === modelId);
 
-      if (!CONFIG.OPENROUTER_API_KEY) {
-        outputPlaceholder.hidden = true;
-        outputResult.hidden = false;
-        outputMeta.textContent = "Configuration required";
-        outputContent.textContent = "API key not configured.\n\nOpen config.js and paste your OpenRouter API key:\n\nconst CONFIG = {\n  OPENROUTER_API_KEY: \"your-key-here\",\n  ...\n};\n\nGet a free key at: https://openrouter.ai/keys";
-        outputNotes.innerHTML = "";
-        return;
-      }
-
       optimiseBtn.classList.add("loading");
       optimiseBtn.disabled = true;
 
       try {
-        const result = await simulateOptimisation(prompt, model);
+        const result = await requestOptimisation(prompt, model);
         outputPlaceholder.hidden = true;
         outputResult.hidden = false;
         outputMeta.textContent = `Optimised for ${model.name}${model.id === "any" ? "" : " \u2014 " + model.provider}`;
@@ -649,8 +639,8 @@
         copyBtn.hidden = false;
       } catch (err) {
         console.error("Optimisation failed:", err);
-        outputContent.textContent = "Something went wrong. Please try again.";
-        outputMeta.textContent = "Error";
+        outputContent.textContent = err instanceof Error ? err.message : "Something went wrong. Please try again.";
+        outputMeta.textContent = "Optimisation error";
         outputNotes.innerHTML = "";
       } finally {
         optimiseBtn.classList.remove("loading");
@@ -676,42 +666,23 @@
       }
     });
 
-    async function simulateOptimisation(prompt, model) {
-      if (!CONFIG.OPENROUTER_API_KEY) {
-        throw new Error("API key not configured. Open config.js and paste your OpenRouter API key.");
-      }
-
-      const systemPrompt = buildSystemPrompt(model);
-
-      const response = await fetch(CONFIG.API_URL, {
+    async function requestOptimisation(prompt, model) {
+      const response = await fetch("/api/optimize", {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${CONFIG.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": window.location.origin,
-          "X-Title": "MetaPrompt"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: CONFIG.MODEL_ID,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 2048
-        })
+          prompt,
+          modelId: model.id,
+        }),
       });
 
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API error: ${response.status}`);
+        throw new Error(data.error || `Optimisation API error: ${response.status}`);
       }
+      if (!data.prompt) throw new Error("No response from OpenCode Zen");
 
-      const data = await response.json();
-      const optimised = data.choices?.[0]?.message?.content;
-      if (!optimised) throw new Error("No response from model");
-
-      return { prompt: optimised, notes: buildNotes(model) };
+      return { prompt: data.prompt, notes: data.notes || buildNotes(model) };
     }
 
     function buildSystemPrompt(model) {
