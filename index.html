@@ -265,6 +265,31 @@
       font-variant-numeric: tabular-nums;
     }
 
+    /* --- Character flip reveal --- */
+    .flip-char {
+      display: inline-block;
+      opacity: 0;
+      transform: rotateX(-90deg) translateY(8px);
+      transform-origin: center bottom;
+      will-change: transform, opacity;
+      transition: opacity 0.4s var(--ease-out-expo),
+                  transform 0.5s var(--ease-out-expo);
+    }
+    .flip-char.is-flipped {
+      opacity: 1;
+      transform: rotateX(0deg) translateY(0);
+    }
+    .flip-char.space-char {
+      width: 0.3em;
+    }
+    .flip-char.br-char {
+      display: block;
+      height: 0;
+    }
+    .flip-reveal {
+      /* Container needs no special styles, chars are inline-block */
+    }
+
     /* --- Reduced motion: disable all motion --- */
     @media (prefers-reduced-motion: reduce) {
       .reveal,
@@ -284,6 +309,12 @@
       }
       .floating-mockup .plate {
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      }
+      .flip-char {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        will-change: auto !important;
       }
     }
 
@@ -318,11 +349,11 @@
 
   <header class="site-header reveal-up">
     <div class="header-left">
-      <span class="eyebrow">Prompt Engineering</span>
-      <h1 class="wordmark">MetaPrompt</h1>
+      <span class="eyebrow flip-reveal">Prompt Engineering</span>
+      <h1 class="wordmark flip-reveal">MetaPrompt</h1>
     </div>
     <div class="header-right">
-      <span class="label">Optimise once, paste anywhere</span>
+      <span class="label flip-reveal">Optimise once, paste anywhere</span>
     </div>
   </header>
 
@@ -331,7 +362,7 @@
   <section class="hero">
     <div class="hero-grid reveal-group">
       <div class="hero-text reveal-child">
-        <p class="hero-lead">Your prompt, refined for every model. Describe what you want and MetaPrompt generates the most optimal prompt tailored to each AI provider's unique requirements.</p>
+        <p class="hero-lead flip-reveal">Your prompt, refined for every model. Describe what you want and MetaPrompt generates the most optimal prompt tailored to each AI provider's unique requirements.</p>
       </div>
       <div class="hero-plate reveal-child floating-mockup" data-parallax="0.85" data-tilt>
         <div class="plate">
@@ -346,33 +377,33 @@
 
   <section class="stats-section">
     <div class="section-header reveal">
-      <span class="eyebrow">By the numbers</span>
-      <h2 class="section-title">Built for speed, trusted by thousands</h2>
+      <span class="eyebrow flip-reveal">By the numbers</span>
+      <h2 class="section-title flip-reveal">Built for speed, trusted by thousands</h2>
     </div>
     <div class="stats-grid reveal-group">
       <div class="stat-card reveal-child">
         <div>
-          <span class="stat-value">8+</span>
+          <span class="stat-value flip-reveal">8+</span>
         </div>
-        <span class="stat-label">AI providers supported</span>
+        <span class="stat-label flip-reveal">AI providers supported</span>
       </div>
       <div class="stat-card reveal-child">
         <div>
-          <span class="stat-value">49K</span>
+          <span class="stat-value flip-reveal">49K</span>
         </div>
-        <span class="stat-label">Prompts optimised monthly</span>
+        <span class="stat-label flip-reveal">Prompts optimised monthly</span>
       </div>
       <div class="stat-card reveal-child">
         <div>
-          <span class="stat-value">3s</span>
+          <span class="stat-value flip-reveal">3s</span>
         </div>
-        <span class="stat-label">Average optimisation time</span>
+        <span class="stat-label flip-reveal">Average optimisation time</span>
       </div>
       <div class="stat-card reveal-child">
         <div>
-          <span class="stat-value">97%</span>
+          <span class="stat-value flip-reveal">97%</span>
         </div>
-        <span class="stat-label">User satisfaction rate</span>
+        <span class="stat-label flip-reveal">User satisfaction rate</span>
       </div>
     </div>
   </section>
@@ -381,19 +412,19 @@
 
   <main class="tool-section">
     <div class="section-header reveal">
-      <span class="eyebrow">The tool</span>
-      <h2 class="section-title">Craft your prompt</h2>
+      <span class="eyebrow flip-reveal">The tool</span>
+      <h2 class="section-title flip-reveal">Craft your prompt</h2>
     </div>
 
     <div class="tool-grid reveal-group">
       <div class="tool-panel input-panel reveal-child">
         <div class="panel-header">
-          <span class="label">Input</span>
+          <span class="label flip-reveal">Input</span>
         </div>
         <div class="hairline-panel"></div>
 
         <div class="field-group">
-          <label for="userPrompt" class="field-label">What do you want to achieve?</label>
+          <label for="userPrompt" class="field-label flip-reveal">What do you want to achieve?</label>
           <textarea id="userPrompt" class="prompt-input" placeholder="Describe your task in plain language. For example: &ldquo;Write a Python script that ingests a CSV of customer orders and generates a summary dashboard in HTML&rdquo;" rows="8"></textarea>
           <span class="char-count" id="charCount">0 characters</span>
         </div>
@@ -401,7 +432,7 @@
         <div class="hairline-panel"></div>
 
         <div class="field-group">
-          <label for="modelSelect" class="field-label">Target AI provider</label>
+          <label for="modelSelect" class="field-label flip-reveal">Target AI provider</label>
           <div class="select-wrapper">
             <select id="modelSelect" class="model-select">
               <option value="any">Any model (universal)</option>
@@ -425,7 +456,7 @@
 
       <div class="tool-panel output-panel reveal-child" id="outputPanel">
         <div class="panel-header">
-          <span class="label">Optimised prompt</span>
+          <span class="label flip-reveal">Optimised prompt</span>
           <button class="btn-ghost" id="copyBtn" hidden>Copy</button>
         </div>
         <div class="hairline-panel"></div>
@@ -435,7 +466,7 @@
             <div class="plate-image" id="outputPlateImage"></div>
             <span class="plate-caption">Lake ink</span>
           </div>
-          <p class="output-empty-text">Your optimised prompt will appear here. Fill in your task and target a model, then click optimise.</p>
+          <p class="output-empty-text flip-reveal">Your optimised prompt will appear here. Fill in your task and target a model, then click optimise.</p>
         </div>
 
         <div class="output-result" id="outputResult" hidden>
@@ -453,26 +484,26 @@
 
   <section class="how-section">
     <div class="section-header reveal">
-      <span class="eyebrow">How it works</span>
-      <h2 class="section-title">Three steps to the perfect prompt</h2>
+      <span class="eyebrow flip-reveal">How it works</span>
+      <h2 class="section-title flip-reveal">Three steps to the perfect prompt</h2>
     </div>
     <div class="steps-grid reveal-group">
       <div class="step-card reveal-child" data-reveal-delay="0">
-        <span class="step-number">01</span>
-        <h3 class="step-title">Describe your task</h3>
-        <p class="step-desc">Tell us what you want in plain language. Include any constraints, output formats, or preferences.</p>
+        <span class="step-number flip-reveal">01</span>
+        <h3 class="step-title flip-reveal">Describe your task</h3>
+        <p class="step-desc flip-reveal">Tell us what you want in plain language. Include any constraints, output formats, or preferences.</p>
       </div>
       <div class="step-divider reveal-child" style="min-height:100%;"></div>
       <div class="step-card reveal-child" data-reveal-delay="1">
-        <span class="step-number">02</span>
-        <h3 class="step-title">Pick your target</h3>
-        <p class="step-desc">Choose the AI provider you plan to use. Each model has unique prompt engineering requirements we handle automatically.</p>
+        <span class="step-number flip-reveal">02</span>
+        <h3 class="step-title flip-reveal">Pick your target</h3>
+        <p class="step-desc flip-reveal">Choose the AI provider you plan to use. Each model has unique prompt engineering requirements we handle automatically.</p>
       </div>
       <div class="step-divider reveal-child" style="min-height:100%;"></div>
       <div class="step-card reveal-child" data-reveal-delay="2">
-        <span class="step-number">03</span>
-        <h3 class="step-title">Copy &amp; paste</h3>
-        <p class="step-desc">Get a fully optimised prompt tailored to your chosen model. Copy it, paste it in, and get better results immediately.</p>
+        <span class="step-number flip-reveal">03</span>
+        <h3 class="step-title flip-reveal">Copy &amp; paste</h3>
+        <p class="step-desc flip-reveal">Get a fully optimised prompt tailored to your chosen model. Copy it, paste it in, and get better results immediately.</p>
       </div>
     </div>
   </section>
@@ -481,8 +512,8 @@
 
   <section class="models-section">
     <div class="section-header reveal">
-      <span class="eyebrow">Supported models</span>
-      <h2 class="section-title">Provider-specific optimisation</h2>
+      <span class="eyebrow flip-reveal">Supported models</span>
+      <h2 class="section-title flip-reveal">Provider-specific optimisation</h2>
     </div>
     <div class="models-grid reveal-group" id="modelsGrid"></div>
   </section>
@@ -492,15 +523,15 @@
   <footer class="site-footer reveal-up">
     <div class="footer-grid">
       <div class="footer-brand">
-        <span class="wordmark wordmark-small">MetaPrompt</span>
+        <span class="wordmark wordmark-small flip-reveal">MetaPrompt</span>
       </div>
       <div class="footer-links">
-        <span class="label">Optimisation engine powered by Grok</span>
+        <span class="label flip-reveal">Optimisation engine powered by Grok</span>
       </div>
     </div>
     <div class="hairline-full" style="margin: 1.5rem 0 0 0;"></div>
     <div class="footer-bottom">
-      <span class="label">MetaPrompt &copy; 2026</span>
+      <span class="label flip-reveal">MetaPrompt &copy; 2026</span>
     </div>
   </footer>
 
@@ -537,9 +568,46 @@
     models.forEach(m => {
       const card = document.createElement("div");
       card.className = "model-card reveal-child";
-      card.innerHTML = `<span class="model-name">${m.name}</span><span class="model-provider">${m.provider}</span><p class="model-trait">${m.trait}</p>`;
+      card.innerHTML = `<span class="model-name flip-reveal">${m.name}</span><span class="model-provider flip-reveal">${m.provider}</span><p class="model-trait flip-reveal">${m.trait}</p>`;
       modelsGrid.appendChild(card);
     });
+
+    /* Re-init flip-reveal for dynamically added model cards */
+    setTimeout(() => {
+      const flipEls = document.querySelectorAll(".model-card .flip-reveal");
+      flipEls.forEach(el => {
+        if (el.querySelector(".flip-char")) return; /* Already processed */
+        const text = el.textContent;
+        if (!text || text.trim().length === 0) return;
+        el.setAttribute("aria-label", text);
+        let charIndex = 0;
+        for (let i = 0; i < text.length; i++) {
+          const char = text[i];
+          const span = document.createElement("span");
+          span.className = "flip-char";
+          span.setAttribute("aria-hidden", "true");
+          if (char === " ") {
+            span.innerHTML = "&nbsp;";
+            span.classList.add("space-char");
+          } else {
+            span.textContent = char;
+          }
+          span.style.transitionDelay = `${Math.min(charIndex * 30, 600)}ms`;
+          el.appendChild(span);
+          charIndex++;
+        }
+        el.textContent = "";
+        const flipObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              entry.target.querySelectorAll(".flip-char").forEach(c => c.classList.add("is-flipped"));
+              flipObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: "0px 0px -10% 0px" });
+        flipObserver.observe(el);
+      });
+    }, 100);
 
     userPrompt.addEventListener("input", () => {
       const len = userPrompt.value.length;
@@ -687,6 +755,78 @@
        ============================================================ */
     (function() {
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* ============================================================
+         CHARACTER FLIP REVEAL SYSTEM
+         Wraps each character in a span and flips them in on scroll
+         ============================================================ */
+      function initFlipReveal() {
+        const flipEls = document.querySelectorAll(".flip-reveal");
+
+        flipEls.forEach(el => {
+          const text = el.textContent;
+          if (!text || text.trim().length === 0) return;
+
+          /* Skip interactive elements */
+          if (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.tagName === "SELECT") return;
+
+          /* Save original display to preserve layout */
+          const originalDisplay = window.getComputedStyle(el).display;
+          const originalFontSize = window.getComputedStyle(el).fontSize;
+          const originalFontWeight = window.getComputedStyle(el).fontWeight;
+          const originalFontFamily = window.getComputedStyle(el).fontFamily;
+          const originalColor = window.getComputedStyle(el).color;
+          const originalLetterSpacing = window.getComputedStyle(el).letterSpacing;
+          const originalTextTransform = window.getComputedStyle(el).textTransform;
+          const originalLineHeight = window.getComputedStyle(el).lineHeight;
+
+          el.innerHTML = "";
+          el.setAttribute("aria-label", text);
+
+          let charIndex = 0;
+          for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const span = document.createElement("span");
+            span.className = "flip-char";
+            span.setAttribute("aria-hidden", "true");
+
+            if (char === " ") {
+              span.innerHTML = "&nbsp;";
+              span.classList.add("space-char");
+            } else if (char === "\n") {
+              span.classList.add("br-char");
+            } else {
+              span.textContent = char;
+            }
+
+            /* Stagger: 30ms per character, max 600ms total */
+            const delay = Math.min(charIndex * 30, 600);
+            span.style.transitionDelay = `${delay}ms`;
+
+            el.appendChild(span);
+            charIndex++;
+          }
+        });
+
+        /* IntersectionObserver for flip-reveal elements */
+        const flipObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const chars = entry.target.querySelectorAll(".flip-char");
+              chars.forEach(c => c.classList.add("is-flipped"));
+              flipObserver.unobserve(entry.target);
+            }
+          });
+        }, {
+          threshold: 0.1,
+          rootMargin: "0px 0px -10% 0px"
+        });
+
+        flipEls.forEach(el => flipObserver.observe(el));
+      }
+
+      /* Initialize flip reveal after DOM is ready */
+      initFlipReveal();
 
       /* --- Background images for plate elements --- */
       document.getElementById("heroPlateImage").style.backgroundImage = "url('models-hero.png')";
