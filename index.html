@@ -336,7 +336,7 @@
       <div class="hero-plate reveal-child floating-mockup" data-parallax="0.85" data-tilt>
         <div class="plate">
           <div class="plate-image" id="heroPlateImage"></div>
-          <span class="plate-caption">Forest dusk</span>
+          <span class="plate-caption">Models</span>
         </div>
       </div>
     </div>
@@ -509,12 +509,52 @@
        Placeholder Grok integration; replace with real API later.
        ============================================================ */
 
+    /*
+     * ============================================================
+     * META-SYSTEM PROMPTS
+     * These are the system prompts used by the Grok-powered backend
+     * to generate optimised prompts for each AI provider.
+     * When you wire up the real API, send these as the system prompt
+     * along with the user's input and target model.
+     * ============================================================
+     *
+     * SYSTEM PROMPT FOR GROK (meta-prompt engine):
+     *
+     * You are MetaPrompt, an expert prompt engineer. Your task is to
+     * take a user's raw intent and generate the most effective prompt
+     * for a specific AI model. You know each model's training quirks,
+     * preferred format, token limits, and reasoning style.
+     *
+     * For each model, you apply model-specific heuristics:
+     * - Claude: XML tags for structure, explicit role/task/instructions,
+     *   few-shot examples when applicable, chain-of-thought via thinking.
+     * - ChatGPT: System/user message separation, markdown formatting,
+     *   clear constraints and output spec.
+     * - Grok: Direct conversational tone, minimal scaffolding, emphasis
+     *   on honesty and real-time awareness.
+     * - Gemini: Grounding instructions, numbered guidelines, factual
+     *   emphasis, structured headings.
+     * - Copilot: Goal-context-source-expectation framework, business-
+     *   appropriate tone, source-aware prompting.
+     * - Kimi: Long-context document style, horizontal rules, explicit
+     *   sectioning for retrieval.
+     * - NemoTron: Specification-style language, requirements/constraints
+     *   pattern, production-ready code emphasis.
+     * - DeepSeek: Chain-of-thought directives, step-by-step decomposition,
+     *   reasoning-before-answer structure.
+     *
+     * You always output the optimised prompt as plain text, ready to
+     * copy-paste. You never add meta-commentary to the output prompt.
+     * ============================================================
+     */
+
     const models = [
       { id: "any", name: "Any model", provider: "Universal", trait: "Broad-spectrum prompt that works across all major AI providers. Balances clarity, structure, and adaptability." },
       { id: "claude", name: "Claude", provider: "Anthropic", trait: "Prefers structured, thoughtful prompts with clear roles, XML-like scaffolding, and chain-of-thought guidance." },
       { id: "grok", name: "Grok", provider: "xAI", trait: "Responds well to direct, conversational prompts with minimal scaffolding and a focus on real-time context." },
       { id: "chatgpt", name: "ChatGPT", provider: "OpenAI", trait: "Excels with markdown-structured prompts, explicit system/user role separation, and iterative refinement cues." },
       { id: "gemini", name: "Gemini", provider: "Google", trait: "Optimised for detailed, context-rich prompts with clear grounding instructions and multimodal references." },
+      { id: "copilot", name: "Copilot", provider: "Microsoft", trait: "Thrives with the Goal-Context-Source-Expectation framework. Be specific about desired output, provide source references, and set clear expectations." },
       { id: "kimi", name: "Kimi", provider: "Moonshot AI", trait: "Thrives on long-context, document-style prompts with structured sections and explicit retrieval hints." },
       { id: "nemotron", name: "NemoTron", provider: "NVIDIA", trait: "Optimised for technical, code-heavy prompts with precise specifications and structured output formatting." },
       { id: "deepseek", name: "DeepSeek", provider: "DeepSeek", trait: "Performs well with reasoning-heavy prompts, step-by-step decomposition, and chain-of-thought directives." }
@@ -607,37 +647,50 @@
       let result = "", notes = "";
       switch (model.id) {
         case "any":
-          result = `## Task\n${prompt}\n\n## Instructions\n- Provide a thorough, well-structured response.\n- Include examples where helpful.\n- Format output clearly using headings, lists, or code blocks as appropriate.\n- If the task is ambiguous, state your assumptions before proceeding.`;
-          notes = "<strong>Universal strategy:</strong> This prompt uses neutral formatting and clear constraints that work across all major providers. Adjust tone or structure if you target a specific model.";
+          result = "## Task\n" + prompt + "\n\n## Instructions\n- Provide a thorough, well-structured response.\n- Include examples where helpful.\n- Format output clearly using headings, lists, or code blocks as appropriate.\n- If the task is ambiguous, state your assumptions before proceeding.";
+          notes = "<strong>Universal strategy:</strong> Neutral formatting and clear constraints that work across all major providers.";
           break;
+
         case "claude":
-          result = `<role>You are an expert assistant tasked with the following.</role>\n\n<task>\n${prompt}\n</task>\n\n<instructions>\n1. Think through the problem step by step before answering.\n2. Provide a detailed, nuanced response.\n3. If there are edge cases or trade-offs, discuss them explicitly.\n4. Use XML-style scaffolding for structured outputs when helpful.\n</instructions>\n\n<output_format>\nPresent your answer in clear sections with headings. Use code blocks for any code.\n</output_format>`;
-          notes = "<strong>Claude strategy:</strong> Uses Anthropic's preferred XML-scaffolded prompt structure with explicit role/task/instructions separation. Chain-of-thought is prompted inline. This format aligns with Claude's constitutional training.";
+          result = "<role>You are an expert assistant tasked with the following.</role>\n\n<task>\n" + prompt + "\n</task>\n\n<context>\nYou are Claude, made by Anthropic. You excel at careful, nuanced reasoning and prefer structured inputs with clear XML tags. You perform best when given explicit instructions about your role, task boundaries, and expected output format. You support extended thinking for complex problems.\n</context>\n\n<instructions>\n1. Think through the problem step by step before answering.\n2. Provide a detailed, nuanced response with explicit reasoning.\n3. If there are edge cases or trade-offs, discuss them thoroughly.\n4. Use XML-style scaffolding for structured outputs.\n5. When the task is complex, break it into sub-tasks and address each one.\n</instructions>\n\n<output_format>\nPresent your answer in clear sections with headings. Use code blocks for any code. Be thorough but concise.\n</output_format>";
+          notes = "<strong>Claude strategy:</strong> XML-scaffolded structure with role/task/context/instructions separation. The context tag grounds Claude in its identity. Supports extended thinking for complex problems.";
           break;
+
         case "grok":
-          result = `${prompt}\n\nBe direct and thorough. Include relevant context from current knowledge. If you're uncertain about something, say so rather than guessing. Structure your answer for quick comprehension — use bullet points and clear sections where appropriate.`;
-          notes = "<strong>Grok strategy:</strong> Keeps the prompt conversational and direct. Grok responds best to natural language with minimal meta-scaffolding. The prompt emphasizes honesty and clarity over formal structure.";
+          result = prompt + "\n\nBe direct, thorough, and honest. Use your real-time knowledge where relevant. If you're uncertain, say so rather than guessing. Structure your answer for quick comprehension \u2014 use bullet points and clear sections. Avoid unnecessary hedging; be confident where the facts support it.";
+          notes = "<strong>Grok strategy:</strong> Conversational and direct. Grok (xAI) responds best to natural language with minimal scaffolding. Emphasises honesty, real-time awareness, and directness.";
           break;
+
         case "chatgpt":
-          result = `# System\nYou are a knowledgeable, precise assistant. Always provide accurate, well-reasoned responses. When the task involves code, include working, tested examples.\n\n# User\n${prompt}\n\n# Format\n- Start with a brief summary of your approach.\n- Provide the main answer in well-structured sections.\n- End with key takeaways or next steps.\n- Use markdown formatting throughout.`;
-          notes = "<strong>ChatGPT strategy:</strong> Mirrors OpenAI's system/user message separation. The prompt defines role, task, and output format explicitly. Markdown structure is reinforced, which ChatGPT handles natively.";
+          result = "[System]\nYou are a knowledgeable, precise assistant built by OpenAI. You excel at markdown-structured responses. When the task involves code, include working, tested examples with error handling.\n\n[User]\n" + prompt + "\n\n[Format Requirements]\n- Start with a brief summary of your approach.\n- Provide the main answer in well-structured markdown sections.\n- Include code in fenced code blocks with language tags.\n- End with key takeaways or next steps.\n- Use tables for comparisons, lists for steps, and headings for sections.";
+          notes = "<strong>ChatGPT strategy:</strong> System/user message separation using bracketed labels. The system message grounds ChatGPT in its identity. Markdown formatting reinforced throughout.";
           break;
+
         case "gemini":
-          result = `## Context & Grounding\nYou have access to broad knowledge. Ground your response in verifiable facts and cite reasoning where possible.\n\n## Task\n${prompt}\n\n## Guidelines\n1. Provide a comprehensive, well-organised answer.\n2. Use clear headings and structured formatting.\n3. Include practical examples or code snippets where relevant.\n4. If the task involves multiple steps, break them down clearly.\n5. Note any assumptions or limitations.`;
-          notes = "<strong>Gemini strategy:</strong> Emphasises grounding and factual accuracy — key strengths of Google's training. The prompt uses structured headings and explicit numbered guidelines that align with Gemini's instruction-following style.";
+          result = "## Context & Grounding\nYou are Gemini, built by Google. Ground your response in verifiable facts and cite your reasoning. Use your broad knowledge base and multimodal understanding where applicable.\n\n## Task\n" + prompt + "\n\n## Guidelines\n1. Provide a comprehensive, well-organised answer.\n2. Use clear headings and structured formatting.\n3. Include practical examples or code snippets where relevant.\n4. If the task involves multiple steps, break them down with numbered sub-tasks.\n5. Note any assumptions, limitations, or areas of uncertainty.\n6. When citing facts, be specific about your confidence level.";
+          notes = "<strong>Gemini strategy:</strong> Grounding, factual accuracy, and multimodal awareness. Structured headings and numbered guidelines align with Gemini's instruction-following style.";
           break;
+
+        case "copilot":
+          result = "## Goal\n" + prompt + "\n\n## Context\nYou are Microsoft Copilot, an AI assistant integrated across Microsoft 365, Windows, and Edge. You excel at task-oriented responses that are actionable and specific. You understand business workflows, document creation, data analysis, and code generation.\n\n## Source References\n- Use your training knowledge as the primary source.\n- If the task involves Microsoft products, reference official documentation patterns.\n- For code, prefer C#, TypeScript, Python, and PowerShell where applicable.\n\n## Expectations\n- Provide a clear, actionable response that can be immediately used.\n- Use step-by-step instructions for process-oriented tasks.\n- For code, include complete, runnable examples with comments.\n- Format output for readability: headers, bullets, code blocks, and tables.\n- Be concise but complete \u2014 prioritise usefulness over length.";
+          notes = "<strong>Copilot strategy:</strong> Uses Microsoft's Goal-Context-Source-Expectation (GCSE) framework. Clearly separates what the user wants, the assistant's capabilities, information sources, and response expectations.";
+          break;
+
         case "kimi":
-          result = `# Document Context\nYou are processing a detailed task request. Read the entire prompt carefully before responding.\n\n---\n\n# Task Description\n${prompt}\n\n---\n\n# Response Requirements\n1. Provide a thorough, long-form response with full detail.\n2. Structure your answer with clear markdown headings.\n3. If the task involves research or analysis, walk through your reasoning step by step.\n4. Include relevant examples, citations, or references where applicable.\n5. The user values completeness — err on the side of more detail.`;
-          notes = "<strong>Kimi strategy:</strong> Leverages Kimi's long-context capabilities with a document-style prompt. Horizontal rules and explicit sectioning signal a structured document, which Kimi processes particularly well.";
+          result = "# Document Context\nYou are Kimi, an AI assistant by Moonshot AI optimised for long-context understanding. You excel at processing and synthesising large amounts of information. Read the entire prompt carefully before responding.\n\n---\n\n# Task Description\n" + prompt + "\n\n---\n\n# Response Requirements\n1. Provide a thorough, long-form response with full detail.\n2. Structure your answer with clear markdown headings and sub-headings.\n3. If the task involves research or analysis, walk through your reasoning step by step.\n4. Include relevant examples, citations, or references where applicable.\n5. The user values completeness \u2014 err on the side of more detail rather than less.\n6. Use horizontal rules to separate major sections of your response.";
+          notes = "<strong>Kimi strategy:</strong> Long-context document style. Horizontal rules and explicit sectioning signal a structured document. Kimi's strength is processing extensive information (up to 2M tokens).";
           break;
+
         case "nemotron":
-          result = `## Specification\n${prompt}\n\n## Requirements\n- Provide a precise, technically accurate solution.\n- Include production-ready code with error handling where applicable.\n- Document any assumptions, dependencies, or configuration needed.\n- Output format: clearly sectioned with code in fenced blocks and comments inline.\n\n## Constraints\n- Prioritise correctness and efficiency.\n- If trade-offs exist, explain them.\n- Use industry best practices.`;
-          notes = "<strong>NemoTron strategy:</strong> Optimised for NVIDIA's technical strengths. The prompt uses specification-style language with explicit requirements and constraints — mirroring how NemoTron excels at structured technical tasks.";
+          result = "## Specification\n" + prompt + "\n\n## Requirements\n- Provide a precise, technically accurate solution.\n- Include production-ready code with error handling, type annotations, and inline comments.\n- Document any assumptions, dependencies, or configuration needed.\n- Output format: clearly sectioned with code in fenced blocks and language tags.\n- Follow industry best practices for the relevant language/framework.\n\n## Constraints\n- Prioritise correctness and efficiency over brevity.\n- If trade-offs exist, explain them with clear reasoning.\n- Use descriptive variable names and consistent formatting.\n- Include edge case handling where applicable.";
+          notes = "<strong>NemoTron strategy:</strong> Specification-style language with explicit requirements and quality criteria. NemoTron excels at structured technical and coding tasks.";
           break;
+
         case "deepseek":
-          result = `${prompt}\n\n## Reasoning Instructions\nBefore answering, think through this problem carefully:\n1. Identify the core requirements and constraints.\n2. Break the problem into logical sub-problems.\n3. For each sub-problem, consider multiple approaches and pick the best one.\n4. Synthesise your reasoning into a clear final answer.\n\n## Output\nPresent your final answer with clear structure. Include your reasoning as a brief preamble if it adds clarity.`;
-          notes = "<strong>DeepSeek strategy:</strong> Prompts explicit chain-of-thought and step-by-step decomposition — DeepSeek's standout capability. The reasoning instructions are placed before the output format to encourage deep processing.";
+          result = prompt + "\n\n## Reasoning Instructions\nBefore providing your answer, think through this problem carefully and show your reasoning:\n1. Identify the core requirements and constraints of the task.\n2. Break the problem into logical sub-problems.\n3. For each sub-problem, consider multiple approaches and evaluate their trade-offs.\n4. Select the best approach and justify your choice.\n5. Synthesise your reasoning into a clear final answer.\n\n## Output Requirements\n- Present your reasoning process first, then the final answer.\n- Use markdown formatting with clear section headers.\n- For code tasks, include complete implementations with explanations.\n- Be explicit about your assumptions and confidence level.";
+          notes = "<strong>DeepSeek strategy:</strong> Chain-of-thought and step-by-step decomposition. DeepSeek-R1's reinforcement-learning-trained reasoning patterns are leveraged by asking for explicit reasoning before the answer.";
           break;
+
         default:
           result = prompt;
           notes = "No model-specific optimisation applied.";
@@ -653,7 +706,7 @@
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       /* --- Background images for plate elements --- */
-      document.getElementById("heroPlateImage").style.backgroundImage = "url('https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80')";
+      document.getElementById("heroPlateImage").style.backgroundImage = "url('models-hero.png')";
       document.getElementById("outputPlateImage").style.backgroundImage = "url('https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=600&q=80')";
 
       /* --- Hero fade-in on load (no scroll needed) --- */
