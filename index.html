@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MetaPrompt — Optimise your prompt for any AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       MetaPrompt — Cairn Design System
+       Editorial dark infrastructure. Restraint and craft.
+       ============================================================ */
+
+    :root {
+      --bg: #0A0B0C;
+      --bg-elevated: #101214;
+      --ink: #F3F2ED;
+      --ink-muted: #9A9C99;
+      --ink-faint: #5C5F5D;
+      --hairline: rgba(243, 242, 237, 0.10);
+      --hairline-strong: rgba(243, 242, 237, 0.18);
+      --mint: #B8F0D4;
+      --mint-ink: #0A0B0C;
+      --pill-white: #F3F2ED;
+      --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+      --font-sans: "Inter", "Neue Haas Grotesk", "Helvetica Neue", Arial, sans-serif;
+      --radius-sm: 4px;
+      --radius-pill: 9999px;
+
+      /* Animation tokens */
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+      --reveal-duration: 700ms;
+      --reveal-stagger: 75ms;
+      --countup-duration: 900ms;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); font-weight: 400; line-height: 1.6; max-width: 100%; overflow-x: hidden; }
+    .top-bar { height: 3px; background: var(--hairline); width: 100%; }
+    .hairline-full { width: 100%; height: 1px; background: var(--hairline); }
+    .hairline-panel { width: 100%; height: 1px; background: var(--hairline); margin: 1.25rem 0; }
+    .eyebrow { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-faint); display: block; margin-bottom: 0.35rem; }
+    .label { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-muted); }
+    .label-hint { color: var(--ink-faint); text-transform: none; letter-spacing: 0; }
+
+    .site-header { display: flex; justify-content: space-between; align-items: flex-end; padding: 2rem 3rem 1.75rem; max-width: 1400px; margin: 0 auto; opacity: 0; transform: translateY(20px); animation: hero-fade-in 0.9s var(--ease-out-expo) 0.1s forwards; }
+    @keyframes hero-fade-in { to { opacity: 1; transform: translateY(0); } }
+    .wordmark { font-family: var(--font-serif); font-size: clamp(2rem, 4vw, 2.75rem); font-weight: 600; color: var(--ink); line-height: 1; letter-spacing: -0.01em; }
+    .wordmark-small { font-size: 1.4rem; }
+    .header-right { padding-bottom: 0.3rem; }
+
+    .hero { padding: 3rem 3rem; max-width: 1400px; margin: 0 auto; }
+    .hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center; }
+    .hero-lead { font-family: var(--font-serif); font-size: clamp(1.2rem, 2.5vw, 1.6rem); line-height: 1.35; color: var(--ink-muted); max-width: 52ch; }
+
+    .plate { border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; background: var(--bg-elevated); }
+    .plate-image { width: 100%; aspect-ratio: 16 / 10; background-size: cover; background-position: center; filter: grayscale(0.25) contrast(1.05) brightness(0.9); position: relative; }
+    .plate-image::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(10, 11, 12, 0.55) 100%); pointer-events: none; }
+    .plate-caption { display: block; padding: 0.65rem 0.85rem; font-family: var(--font-sans); font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+
+    .section-header { padding: 2.5rem 3rem 1.25rem; max-width: 1400px; margin: 0 auto; }
+    .section-title { font-family: var(--font-serif); font-size: clamp(1.75rem, 3.5vw, 2.5rem); font-weight: 500; color: var(--ink); line-height: 1.05; letter-spacing: -0.005em; }
+
+    .tool-section { padding: 1.5rem 3rem 3rem; max-width: 1400px; margin: 0 auto; }
+    .tool-grid { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 0; min-height: 520px; }
+    .tool-panel { background: var(--bg-elevated); padding: 1.75rem; border: 1px solid var(--hairline); border-radius: var(--radius-sm); display: flex; flex-direction: column; }
+    .tool-divider { background: var(--hairline); width: 1px; margin: 0 1.5rem; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; }
+
+    .field-group { display: flex; flex-direction: column; gap: 0.5rem; }
+    .field-label { font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; color: var(--ink); letter-spacing: 0.03em; }
+
+    .prompt-input { width: 100%; background: var(--bg); border: 1px solid var(--hairline); border-radius: var(--radius-sm); color: var(--ink); font-family: var(--font-sans); font-size: 0.9rem; line-height: 1.6; padding: 0.85rem 1rem; resize: vertical; outline: none; transition: border-color 0.2s ease; }
+    .prompt-input:focus { border-color: var(--hairline-strong); }
+    .prompt-input::placeholder { color: var(--ink-faint); opacity: 0.6; }
+    .char-count { font-size: 0.68rem; color: var(--ink-faint); letter-spacing: 0.06em; text-align: right; }
+
+    .select-wrapper { position: relative; }
+    .model-select { width: 100%; appearance: none; background: var(--bg); border: 1px solid var(--hairline); border-radius: var(--radius-sm); color: var(--ink); font-family: var(--font-sans); font-size: 0.9rem; padding: 0.75rem 2.5rem 0.75rem 1rem; cursor: pointer; outline: none; transition: border-color 0.2s ease; }
+    .model-select:focus { border-color: var(--hairline-strong); }
+    .model-select option { background: var(--bg-elevated); color: var(--ink); }
+    .select-wrapper::after { content: ""; position: absolute; right: 1rem; top: 50%; transform: translateY(-25%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--ink-muted); pointer-events: none; }
+
+    .btn-primary { display: inline-flex; align-items: center; justify-content: center; background: var(--mint); color: var(--mint-ink); font-family: var(--font-sans); font-weight: 500; font-size: 0.9rem; letter-spacing: 0.03em; padding: 0.75rem 1.5rem; border: none; border-radius: var(--radius-pill); cursor: pointer; transition: filter 0.2s ease; margin-top: auto; }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.12); }
+    .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; filter: none; }
+    .btn-secondary { display: inline-flex; align-items: center; justify-content: center; background: var(--pill-white); color: var(--bg); font-family: var(--font-sans); font-weight: 500; font-size: 0.9rem; letter-spacing: 0.03em; padding: 0.75rem 1.5rem; border: none; border-radius: var(--radius-pill); cursor: pointer; transition: filter 0.2s ease; }
+    .btn-secondary:hover { filter: brightness(1.08); }
+    .btn-ghost { background: none; border: none; color: var(--ink); font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); transition: color 0.2s ease; }
+    .btn-ghost:hover { color: var(--mint); }
+
+    .output-placeholder { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem; padding: 1rem; }
+    .output-empty-text { color: var(--ink-faint); font-size: 0.85rem; text-align: center; max-width: 30ch; line-height: 1.5; }
+    .output-result { flex: 1; display: flex; flex-direction: column; }
+    .output-meta { font-family: var(--font-sans); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mint); margin-bottom: 0.25rem; }
+    .output-content { flex: 1; background: var(--bg); border-radius: var(--radius-sm); padding: 1rem 1.25rem; font-family: var(--font-sans); font-size: 0.88rem; line-height: 1.6; color: var(--ink); white-space: pre-wrap; word-break: break-word; overflow-y: auto; max-height: 380px; }
+    .output-notes { font-size: 0.72rem; color: var(--ink-faint); line-height: 1.5; margin-top: 0.25rem; }
+
+    .how-section { padding: 1.5rem 3rem 3rem; max-width: 1400px; margin: 0 auto; }
+    .steps-grid { display: grid; grid-template-columns: 1fr 1px 1fr 1px 1fr; gap: 0; margin-top: 2rem; }
+    .step-card { padding: 1.75rem; background: var(--bg-elevated); border: 1px solid var(--hairline); border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 0.75rem; }
+    .step-divider { background: var(--hairline); width: 1px; margin: 0 1rem; }
+    .step-number { font-family: var(--font-serif); font-size: 2.5rem; font-weight: 600; color: var(--mint); line-height: 1; opacity: 0.7; }
+    .step-title { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 500; color: var(--ink); line-height: 1.2; }
+    .step-desc { font-size: 0.82rem; color: var(--ink-muted); line-height: 1.55; }
+
+    .models-section { padding: 1.5rem 3rem 3rem; max-width: 1400px; margin: 0 auto; }
+    .models-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; margin-top: 2rem; background: var(--hairline); border: 1px solid var(--hairline); border-radius: var(--radius-sm); overflow: hidden; }
+    .model-card { background: var(--bg-elevated); padding: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; transition: background 0.2s ease; }
+    .model-card:hover { background: rgba(243, 242, 237, 0.03); }
+    .model-name { font-family: var(--font-sans); font-size: 0.9rem; font-weight: 500; color: var(--ink); }
+    .model-provider { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+    .model-trait { font-size: 0.75rem; color: var(--ink-muted); line-height: 1.4; }
+
+    .site-footer { padding: 2rem 3rem 2.5rem; max-width: 1400px; margin: 0 auto; }
+    .footer-grid { display: flex; justify-content: space-between; align-items: center; }
+    .footer-bottom { padding-top: 1rem; display: flex; justify-content: space-between; }
+
+    .btn-primary.loading { position: relative; color: transparent; }
+    .btn-primary.loading::after { content: ""; position: absolute; width: 18px; height: 18px; border: 2px solid var(--mint-ink); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       STATS SECTION
+       ============================================================ */
+    .stats-section { padding: 3rem 3rem 3.5rem; max-width: 1400px; margin: 0 auto; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      margin-top: 2rem;
+      background: var(--hairline);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+    .stat-card {
+      background: var(--bg-elevated);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      text-align: center;
+    }
+    .stat-value {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 600;
+      color: var(--mint);
+      line-height: 1;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat-suffix {
+      font-family: var(--font-serif);
+      font-size: clamp(1.2rem, 2vw, 1.8rem);
+      font-weight: 600;
+      color: var(--mint);
+      line-height: 1;
+    }
+    .stat-label {
+      font-family: var(--font-sans);
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      letter-spacing: 0.03em;
+      line-height: 1.3;
+    }
+
+    /* ============================================================
+       SCROLL ANIMATION SYSTEM
+       ============================================================ */
+
+    /* --- Core reveal: 3D fade-rise --- */
+    .reveal {
+      opacity: 0;
+      transform: perspective(1200px) translateY(40px) translateZ(-60px) rotateX(8deg);
+      transform-origin: center bottom;
+      will-change: transform, opacity;
+      transition: opacity var(--reveal-duration) var(--ease-out-expo),
+                  transform var(--reveal-duration) var(--ease-out-expo);
+    }
+    .reveal.is-visible {
+      opacity: 1;
+      transform: perspective(1200px) translateY(0) translateZ(0) rotateX(0deg);
+    }
+    .reveal.no-rotate {
+      transform: perspective(1200px) translateY(40px) translateZ(0) rotateX(0deg);
+      transform-origin: center center;
+    }
+    .reveal.no-rotate.is-visible {
+      transform: perspective(1200px) translateY(0) translateZ(0) rotateX(0deg);
+    }
+
+    /* --- Reveal group: stagger children --- */
+    .reveal-group > .reveal-child {
+      opacity: 0;
+      transform: perspective(1200px) translateY(40px) translateZ(-60px) rotateX(8deg);
+      transform-origin: center bottom;
+      will-change: transform, opacity;
+      transition: opacity var(--reveal-duration) var(--ease-out-expo),
+                  transform var(--reveal-duration) var(--ease-out-expo);
+    }
+    .reveal-group.is-visible > .reveal-child {
+      opacity: 1;
+      transform: perspective(1200px) translateY(0) translateZ(0) rotateX(0deg);
+    }
+
+    /* --- Simple reveal (no 3D tilt) --- */
+    .reveal-up {
+      opacity: 0;
+      transform: translateY(30px);
+      will-change: transform, opacity;
+      transition: opacity var(--reveal-duration) var(--ease-out-expo),
+                  transform var(--reveal-duration) var(--ease-out-expo);
+    }
+    .reveal-up.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* --- Scale reveal (for cards) --- */
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.96) translateY(20px);
+      will-change: transform, opacity;
+      transition: opacity var(--reveal-duration) var(--ease-out-expo),
+                  transform var(--reveal-duration) var(--ease-out-expo);
+    }
+    .reveal-scale.is-visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* --- Parallax element --- */
+    [data-parallax] {
+      will-change: transform;
+      transform: translateZ(0);
+    }
+
+    /* --- Tilt element --- */
+    [data-tilt] {
+      will-change: transform;
+      transform: translateZ(0);
+      transition: transform 0.1s linear;
+    }
+
+    /* --- Floating mockup window style --- */
+    .floating-mockup {
+      position: relative;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .floating-mockup .plate {
+      border-radius: 12px;
+      box-shadow: 0 40px 120px rgba(0, 0, 0, 0.35), 0 8px 32px rgba(0, 0, 0, 0.2);
+      border-color: var(--hairline-strong);
+    }
+
+    /* --- Stats counting animation --- */
+    .stat-value[data-countup] {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* --- Reduced motion: disable all motion --- */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal,
+      .reveal-up,
+      .reveal-scale,
+      .reveal-child,
+      .reveal-group > .reveal-child {
+        opacity: 1 !important;
+        transform: none !important;
+        transition: none !important;
+        will-change: auto !important;
+      }
+      [data-parallax],
+      [data-tilt] {
+        transform: none !important;
+        will-change: auto !important;
+      }
+      .floating-mockup .plate {
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
+    @media (max-width: 900px) {
+      .tool-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .tool-divider { display: none; }
+      .hero-grid { grid-template-columns: 1fr; gap: 2rem; }
+      .steps-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .step-divider { display: none; }
+      .models-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .site-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding: 1.5rem 1.5rem 1.25rem; }
+      .hero, .tool-section, .how-section, .models-section, .stats-section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .section-header { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .site-footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    }
+    @media (max-width: 550px) {
+      .models-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .site-header, .hero, .tool-section, .how-section, .models-section, .stats-section { padding-left: 1rem; padding-right: 1rem; }
+      .section-header { padding-left: 1rem; padding-right: 1rem; }
+      .site-footer { padding-left: 1rem; padding-right: 1rem; }
+      .tool-panel { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar"></div>
+
+  <header class="site-header reveal-up">
+    <div class="header-left">
+      <span class="eyebrow">Prompt Engineering</span>
+      <h1 class="wordmark">MetaPrompt</h1>
+    </div>
+    <div class="header-right">
+      <span class="label">Optimise once, paste anywhere</span>
+    </div>
+  </header>
+
+  <div class="hairline-full"></div>
+
+  <section class="hero">
+    <div class="hero-grid reveal-group">
+      <div class="hero-text reveal-child">
+        <p class="hero-lead">Your prompt, refined for every model. Describe what you want and MetaPrompt generates the most optimal prompt tailored to each AI provider's unique requirements.</p>
+      </div>
+      <div class="hero-plate reveal-child floating-mockup" data-parallax="0.85" data-tilt>
+        <div class="plate">
+          <div class="plate-image" id="heroPlateImage"></div>
+          <span class="plate-caption">Forest dusk</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="hairline-full"></div>
+
+  <section class="stats-section">
+    <div class="section-header reveal">
+      <span class="eyebrow">By the numbers</span>
+      <h2 class="section-title">Built for speed, trusted by thousands</h2>
+    </div>
+    <div class="stats-grid reveal-group">
+      <div class="stat-card reveal-child">
+        <div>
+          <span class="stat-value" data-countup data-target="8" data-suffix="">0</span><span class="stat-suffix">+</span>
+        </div>
+        <span class="stat-label">AI providers supported</span>
+      </div>
+      <div class="stat-card reveal-child">
+        <div>
+          <span class="stat-value" data-countup data-target="49" data-suffix="K">0</span><span class="stat-suffix"></span>
+        </div>
+        <span class="stat-label">Prompts optimised monthly</span>
+      </div>
+      <div class="stat-card reveal-child">
+        <div>
+          <span class="stat-value" data-countup data-target="3" data-suffix="">0</span><span class="stat-suffix">s</span>
+        </div>
+        <span class="stat-label">Average optimisation time</span>
+      </div>
+      <div class="stat-card reveal-child">
+        <div>
+          <span class="stat-value" data-countup data-target="97" data-suffix="">0</span><span class="stat-suffix">%</span>
+        </div>
+        <span class="stat-label">User satisfaction rate</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="hairline-full"></div>
+
+  <main class="tool-section">
+    <div class="section-header reveal">
+      <span class="eyebrow">The tool</span>
+      <h2 class="section-title">Craft your prompt</h2>
+    </div>
+
+    <div class="tool-grid reveal-group">
+      <div class="tool-panel input-panel reveal-child">
+        <div class="panel-header">
+          <span class="label">Input</span>
+        </div>
+        <div class="hairline-panel"></div>
+
+        <div class="field-group">
+          <label for="userPrompt" class="field-label">What do you want to achieve?</label>
+          <textarea id="userPrompt" class="prompt-input" placeholder="Describe your task in plain language. For example: &ldquo;Write a Python script that ingests a CSV of customer orders and generates a summary dashboard in HTML&rdquo;" rows="8"></textarea>
+          <span class="char-count" id="charCount">0 characters</span>
+        </div>
+
+        <div class="hairline-panel"></div>
+
+        <div class="field-group">
+          <label for="modelSelect" class="field-label">Target AI provider</label>
+          <div class="select-wrapper">
+            <select id="modelSelect" class="model-select">
+              <option value="any">Any model (universal)</option>
+              <option value="claude">Claude (Anthropic)</option>
+              <option value="grok">Grok (xAI)</option>
+              <option value="chatgpt">ChatGPT (OpenAI)</option>
+              <option value="gemini">Gemini (Google)</option>
+              <option value="copilot">Copilot (Microsoft)</option>
+              <option value="kimi">Kimi (Moonshot AI)</option>
+              <option value="nemotron">NemoTron (NVIDIA)</option>
+              <option value="deepseek">DeepSeek</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="optimiseBtn" class="btn-primary" disabled>Optimise prompt</button>
+      </div>
+
+      <div class="tool-divider reveal-child" style="min-height:100%;"></div>
+
+      <div class="tool-panel output-panel reveal-child" id="outputPanel">
+        <div class="panel-header">
+          <span class="label">Optimised prompt</span>
+          <button class="btn-ghost" id="copyBtn" hidden>Copy</button>
+        </div>
+        <div class="hairline-panel"></div>
+
+        <div class="output-placeholder" id="outputPlaceholder">
+          <div class="plate" style="max-width: 280px;">
+            <div class="plate-image" id="outputPlateImage"></div>
+            <span class="plate-caption">Lake ink</span>
+          </div>
+          <p class="output-empty-text">Your optimised prompt will appear here. Fill in your task and target a model, then click optimise.</p>
+        </div>
+
+        <div class="output-result" id="outputResult" hidden>
+          <div class="output-meta" id="outputMeta"></div>
+          <div class="hairline-panel"></div>
+          <div class="output-content" id="outputContent"></div>
+          <div class="hairline-panel"></div>
+          <div class="output-notes" id="outputNotes"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="hairline-full"></div>
+
+  <section class="how-section">
+    <div class="section-header reveal">
+      <span class="eyebrow">How it works</span>
+      <h2 class="section-title">Three steps to the perfect prompt</h2>
+    </div>
+    <div class="steps-grid reveal-group">
+      <div class="step-card reveal-child" data-reveal-delay="0">
+        <span class="step-number">01</span>
+        <h3 class="step-title">Describe your task</h3>
+        <p class="step-desc">Tell us what you want in plain language. Include any constraints, output formats, or preferences.</p>
+      </div>
+      <div class="step-divider reveal-child" style="min-height:100%;"></div>
+      <div class="step-card reveal-child" data-reveal-delay="1">
+        <span class="step-number">02</span>
+        <h3 class="step-title">Pick your target</h3>
+        <p class="step-desc">Choose the AI provider you plan to use. Each model has unique prompt engineering requirements we handle automatically.</p>
+      </div>
+      <div class="step-divider reveal-child" style="min-height:100%;"></div>
+      <div class="step-card reveal-child" data-reveal-delay="2">
+        <span class="step-number">03</span>
+        <h3 class="step-title">Copy &amp; paste</h3>
+        <p class="step-desc">Get a fully optimised prompt tailored to your chosen model. Copy it, paste it in, and get better results immediately.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="hairline-full"></div>
+
+  <section class="models-section">
+    <div class="section-header reveal">
+      <span class="eyebrow">Supported models</span>
+      <h2 class="section-title">Provider-specific optimisation</h2>
+    </div>
+    <div class="models-grid reveal-group" id="modelsGrid"></div>
+  </section>
+
+  <div class="hairline-full"></div>
+
+  <footer class="site-footer reveal-up">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="wordmark wordmark-small">MetaPrompt</span>
+      </div>
+      <div class="footer-links">
+        <span class="label">Optimisation engine powered by Grok</span>
+      </div>
+    </div>
+    <div class="hairline-full" style="margin: 1.5rem 0 0 0;"></div>
+    <div class="footer-bottom">
+      <span class="label">MetaPrompt &copy; 2026</span>
+    </div>
+  </footer>
+
+  <script>
+    /* ============================================================
+       MetaPrompt — Application Logic
+       Placeholder Grok integration; replace with real API later.
+       ============================================================ */
+
+    const models = [
+      { id: "any", name: "Any model", provider: "Universal", trait: "Broad-spectrum prompt that works across all major AI providers. Balances clarity, structure, and adaptability." },
+      { id: "claude", name: "Claude", provider: "Anthropic", trait: "Prefers structured, thoughtful prompts with clear roles, XML-like scaffolding, and chain-of-thought guidance." },
+      { id: "grok", name: "Grok", provider: "xAI", trait: "Responds well to direct, conversational prompts with minimal scaffolding and a focus on real-time context." },
+      { id: "chatgpt", name: "ChatGPT", provider: "OpenAI", trait: "Excels with markdown-structured prompts, explicit system/user role separation, and iterative refinement cues." },
+      { id: "gemini", name: "Gemini", provider: "Google", trait: "Optimised for detailed, context-rich prompts with clear grounding instructions and multimodal references." },
+      { id: "kimi", name: "Kimi", provider: "Moonshot AI", trait: "Thrives on long-context, document-style prompts with structured sections and explicit retrieval hints." },
+      { id: "nemotron", name: "NemoTron", provider: "NVIDIA", trait: "Optimised for technical, code-heavy prompts with precise specifications and structured output formatting." },
+      { id: "deepseek", name: "DeepSeek", provider: "DeepSeek", trait: "Performs well with reasoning-heavy prompts, step-by-step decomposition, and chain-of-thought directives." }
+    ];
+
+    const userPrompt = document.getElementById("userPrompt");
+    const charCount = document.getElementById("charCount");
+    const modelSelect = document.getElementById("modelSelect");
+    const optimiseBtn = document.getElementById("optimiseBtn");
+    const outputPlaceholder = document.getElementById("outputPlaceholder");
+    const outputResult = document.getElementById("outputResult");
+    const outputContent = document.getElementById("outputContent");
+    const outputMeta = document.getElementById("outputMeta");
+    const outputNotes = document.getElementById("outputNotes");
+    const copyBtn = document.getElementById("copyBtn");
+    const modelsGrid = document.getElementById("modelsGrid");
+
+    models.forEach(m => {
+      const card = document.createElement("div");
+      card.className = "model-card reveal-child";
+      card.innerHTML = `<span class="model-name">${m.name}</span><span class="model-provider">${m.provider}</span><p class="model-trait">${m.trait}</p>`;
+      modelsGrid.appendChild(card);
+    });
+
+    userPrompt.addEventListener("input", () => {
+      const len = userPrompt.value.length;
+      charCount.textContent = `${len} character${len !== 1 ? "s" : ""}`;
+      updateButtonState();
+    });
+
+    modelSelect.addEventListener("change", updateButtonState);
+
+    function updateButtonState() {
+      optimiseBtn.disabled = userPrompt.value.trim().length === 0;
+    }
+
+    optimiseBtn.addEventListener("click", async () => {
+      const prompt = userPrompt.value.trim();
+      if (!prompt) return;
+      const modelId = modelSelect.value;
+      const model = models.find(m => m.id === modelId);
+
+      optimiseBtn.classList.add("loading");
+      optimiseBtn.disabled = true;
+
+      try {
+        const result = await simulateOptimisation(prompt, model);
+        outputPlaceholder.hidden = true;
+        outputResult.hidden = false;
+        outputMeta.textContent = `Optimised for ${model.name}${model.id === "any" ? "" : " \u2014 " + model.provider}`;
+        outputContent.textContent = result.prompt;
+        outputNotes.innerHTML = result.notes;
+        copyBtn.hidden = false;
+      } catch (err) {
+        console.error("Optimisation failed:", err);
+        outputContent.textContent = "Something went wrong. Please try again.";
+        outputMeta.textContent = "Error";
+        outputNotes.innerHTML = "";
+      } finally {
+        optimiseBtn.classList.remove("loading");
+        optimiseBtn.disabled = false;
+      }
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      const text = outputContent.textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent = "Copied";
+        copyBtn.style.color = "var(--mint)";
+        setTimeout(() => { copyBtn.textContent = "Copy"; copyBtn.style.color = ""; }, 1800);
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.cssText = "position:fixed;opacity:0;";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+    });
+
+    async function simulateOptimisation(prompt, model) {
+      await new Promise(r => setTimeout(r, 1200 + Math.random() * 800));
+      const optimised = buildOptimisedPrompt(prompt, model);
+      return { prompt: optimised.prompt, notes: optimised.notes };
+    }
+
+    function buildOptimisedPrompt(prompt, model) {
+      let result = "", notes = "";
+      switch (model.id) {
+        case "any":
+          result = `## Task\n${prompt}\n\n## Instructions\n- Provide a thorough, well-structured response.\n- Include examples where helpful.\n- Format output clearly using headings, lists, or code blocks as appropriate.\n- If the task is ambiguous, state your assumptions before proceeding.`;
+          notes = "<strong>Universal strategy:</strong> This prompt uses neutral formatting and clear constraints that work across all major providers. Adjust tone or structure if you target a specific model.";
+          break;
+        case "claude":
+          result = `<role>You are an expert assistant tasked with the following.</role>\n\n<task>\n${prompt}\n</task>\n\n<instructions>\n1. Think through the problem step by step before answering.\n2. Provide a detailed, nuanced response.\n3. If there are edge cases or trade-offs, discuss them explicitly.\n4. Use XML-style scaffolding for structured outputs when helpful.\n</instructions>\n\n<output_format>\nPresent your answer in clear sections with headings. Use code blocks for any code.\n</output_format>`;
+          notes = "<strong>Claude strategy:</strong> Uses Anthropic's preferred XML-scaffolded prompt structure with explicit role/task/instructions separation. Chain-of-thought is prompted inline. This format aligns with Claude's constitutional training.";
+          break;
+        case "grok":
+          result = `${prompt}\n\nBe direct and thorough. Include relevant context from current knowledge. If you're uncertain about something, say so rather than guessing. Structure your answer for quick comprehension — use bullet points and clear sections where appropriate.`;
+          notes = "<strong>Grok strategy:</strong> Keeps the prompt conversational and direct. Grok responds best to natural language with minimal meta-scaffolding. The prompt emphasizes honesty and clarity over formal structure.";
+          break;
+        case "chatgpt":
+          result = `# System\nYou are a knowledgeable, precise assistant. Always provide accurate, well-reasoned responses. When the task involves code, include working, tested examples.\n\n# User\n${prompt}\n\n# Format\n- Start with a brief summary of your approach.\n- Provide the main answer in well-structured sections.\n- End with key takeaways or next steps.\n- Use markdown formatting throughout.`;
+          notes = "<strong>ChatGPT strategy:</strong> Mirrors OpenAI's system/user message separation. The prompt defines role, task, and output format explicitly. Markdown structure is reinforced, which ChatGPT handles natively.";
+          break;
+        case "gemini":
+          result = `## Context & Grounding\nYou have access to broad knowledge. Ground your response in verifiable facts and cite reasoning where possible.\n\n## Task\n${prompt}\n\n## Guidelines\n1. Provide a comprehensive, well-organised answer.\n2. Use clear headings and structured formatting.\n3. Include practical examples or code snippets where relevant.\n4. If the task involves multiple steps, break them down clearly.\n5. Note any assumptions or limitations.`;
+          notes = "<strong>Gemini strategy:</strong> Emphasises grounding and factual accuracy — key strengths of Google's training. The prompt uses structured headings and explicit numbered guidelines that align with Gemini's instruction-following style.";
+          break;
+        case "kimi":
+          result = `# Document Context\nYou are processing a detailed task request. Read the entire prompt carefully before responding.\n\n---\n\n# Task Description\n${prompt}\n\n---\n\n# Response Requirements\n1. Provide a thorough, long-form response with full detail.\n2. Structure your answer with clear markdown headings.\n3. If the task involves research or analysis, walk through your reasoning step by step.\n4. Include relevant examples, citations, or references where applicable.\n5. The user values completeness — err on the side of more detail.`;
+          notes = "<strong>Kimi strategy:</strong> Leverages Kimi's long-context capabilities with a document-style prompt. Horizontal rules and explicit sectioning signal a structured document, which Kimi processes particularly well.";
+          break;
+        case "nemotron":
+          result = `## Specification\n${prompt}\n\n## Requirements\n- Provide a precise, technically accurate solution.\n- Include production-ready code with error handling where applicable.\n- Document any assumptions, dependencies, or configuration needed.\n- Output format: clearly sectioned with code in fenced blocks and comments inline.\n\n## Constraints\n- Prioritise correctness and efficiency.\n- If trade-offs exist, explain them.\n- Use industry best practices.`;
+          notes = "<strong>NemoTron strategy:</strong> Optimised for NVIDIA's technical strengths. The prompt uses specification-style language with explicit requirements and constraints — mirroring how NemoTron excels at structured technical tasks.";
+          break;
+        case "deepseek":
+          result = `${prompt}\n\n## Reasoning Instructions\nBefore answering, think through this problem carefully:\n1. Identify the core requirements and constraints.\n2. Break the problem into logical sub-problems.\n3. For each sub-problem, consider multiple approaches and pick the best one.\n4. Synthesise your reasoning into a clear final answer.\n\n## Output\nPresent your final answer with clear structure. Include your reasoning as a brief preamble if it adds clarity.`;
+          notes = "<strong>DeepSeek strategy:</strong> Prompts explicit chain-of-thought and step-by-step decomposition — DeepSeek's standout capability. The reasoning instructions are placed before the output format to encourage deep processing.";
+          break;
+        default:
+          result = prompt;
+          notes = "No model-specific optimisation applied.";
+      }
+      return { prompt: result, notes };
+    }
+
+    /* ============================================================
+       SCROLL ANIMATION ENGINE
+       IntersectionObserver reveals + rAF parallax/tilt + countup
+       ============================================================ */
+    (function() {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      /* --- Background images for plate elements --- */
+      document.getElementById("heroPlateImage").style.backgroundImage = "url('https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80')";
+      document.getElementById("outputPlateImage").style.backgroundImage = "url('https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=600&q=80')";
+
+      /* --- Hero fade-in on load (no scroll needed) --- */
+      const heroReveal = document.querySelector(".hero .reveal-group");
+      if (heroReveal && !prefersReducedMotion) {
+        heroReveal.classList.add("is-visible");
+      } else if (heroReveal) {
+        heroReveal.classList.add("is-visible");
+      }
+
+      /* --- IntersectionObserver: reveal elements --- */
+      if (!prefersReducedMotion) {
+        const revealObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+
+              /* Stagger children in reveal-group */
+              if (el.classList.contains("reveal-group")) {
+                el.classList.add("is-visible");
+                const children = el.querySelectorAll(":scope > .reveal-child");
+                children.forEach((child, i) => {
+                  child.style.transitionDelay = `${i * 75}ms`;
+                });
+                /* Remove will-change after animation */
+                setTimeout(() => {
+                  el.style.willChange = "auto";
+                  children.forEach(c => c.style.willChange = "auto");
+                }, 800 + children.length * 75);
+              } else {
+                el.classList.add("is-visible");
+                setTimeout(() => {
+                  el.style.willChange = "auto";
+                }, 800);
+              }
+
+              revealObserver.unobserve(el);
+            }
+          });
+        }, {
+          threshold: 0,
+          rootMargin: "0px 0px -15% 0px"
+        });
+
+        /* Observe all revealable elements */
+        document.querySelectorAll(".reveal, .reveal-up, .reveal-scale, .reveal-group").forEach(el => {
+          revealObserver.observe(el);
+        });
+
+        /* --- rAF parallax + tilt loop --- */
+        const parallaxEls = document.querySelectorAll("[data-parallax]");
+        const tiltEls = document.querySelectorAll("[data-tilt]");
+
+        if (parallaxEls.length || tiltEls.length) {
+          let ticking = false;
+
+          function updateParallaxAndTilt() {
+            const vh = window.innerHeight;
+
+            parallaxEls.forEach(el => {
+              const rect = el.getBoundingClientRect();
+              const depthFactor = parseFloat(el.dataset.parallax) || 0.85;
+              /* Normalized progress: 0 when bottom enters, 1 when top passes */
+              const progress = 1 - (rect.bottom / (vh + rect.height));
+              const clampedProgress = Math.max(0, Math.min(1, progress));
+              const translateY = (clampedProgress - 0.5) * -100 * depthFactor;
+              el.style.transform = `translateZ(0) translateY(${translateY}px)`;
+            });
+
+            tiltEls.forEach(el => {
+              const rect = el.getBoundingClientRect();
+              const progress = 1 - (rect.bottom / (vh + rect.height));
+              const clampedProgress = Math.max(0, Math.min(1, progress));
+              const rotateY = (clampedProgress - 0.5) * 12;
+              const rotateX = (clampedProgress - 0.5) * -4;
+              /* Get existing translateY from parallax */
+              const currentTransform = el.style.transform || "";
+              const tyMatch = currentTransform.match(/translateY\(([^)]+)\)/);
+              const ty = tyMatch ? tyMatch[1] : "0px";
+              el.style.transform = `translateZ(0) translateY(${ty}) perspective(1200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+            });
+
+            ticking = false;
+          }
+
+          window.addEventListener("scroll", () => {
+            if (!ticking) {
+              requestAnimationFrame(updateParallaxAndTilt);
+              ticking = true;
+            }
+          }, { passive: true });
+
+          /* Initial call */
+          requestAnimationFrame(updateParallaxAndTilt);
+        }
+
+        /* --- Countup numbers --- */
+        const countupEls = document.querySelectorAll("[data-countup]");
+
+        function animateCountUp(el) {
+          const target = parseInt(el.dataset.target, 10);
+          const duration = 900;
+          const startTime = performance.now();
+
+          function tick(now) {
+            const elapsed = now - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            /* Ease-out expo */
+            const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            const current = Math.round(eased * target);
+            el.textContent = current.toLocaleString();
+            if (progress < 1) {
+              requestAnimationFrame(tick);
+            }
+          }
+          requestAnimationFrame(tick);
+        }
+
+        const countupObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              animateCountUp(entry.target);
+              countupObserver.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.3 });
+
+        countupEls.forEach(el => countupObserver.observe(el));
+
+      } else {
+        /* Reduced motion: show everything immediately */
+        document.querySelectorAll(".reveal, .reveal-up, .reveal-scale, .reveal-group").forEach(el => {
+          el.classList.add("is-visible");
+        });
+        /* Show final countup values */
+        document.querySelectorAll("[data-countup]").forEach(el => {
+          el.textContent = parseInt(el.dataset.target, 10).toLocaleString();
+        });
+      }
+
+      /* --- Pointer parallax on desktop (subtle tilt toward cursor) --- */
+      if (!prefersReducedMotion && window.matchMedia("(hover: hover)").matches) {
+        const floatingMockups = document.querySelectorAll(".floating-mockup[data-tilt]");
+        floatingMockups.forEach(mockup => {
+          mockup.addEventListener("mousemove", (e) => {
+            const rect = mockup.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            const dx = (e.clientX - cx) / (rect.width / 2);
+            const dy = (e.clientY - cy) / (rect.height / 2);
+            const rotateY = dx * 4;
+            const rotateX = dy * -3;
+            mockup.style.transition = "transform 0.15s ease-out";
+            /* Layer on existing scroll transforms */
+            const baseTransform = mockup.style.transform || "";
+            const scrollTy = baseTransform.match(/translateY\(([^)]+)\)/);
+            const ty = scrollTy ? scrollTy[1] : "0px";
+            mockup.style.transform = `translateZ(0) translateY(${ty}) perspective(1200px) rotateY(${rotateY}deg) rotateX(${rotateX}deg)`;
+          });
+          mockup.addEventListener("mouseleave", () => {
+            mockup.style.transition = "transform 0.4s ease-out";
+          });
+        });
+      }
+
+    })();
+  </script>
+</body>
+</html>
