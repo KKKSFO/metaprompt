@@ -265,26 +265,17 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* --- Character flip reveal --- */
-    .flip-char {
+    /* --- Word reveal (GPU-light: one span per word, no per-char layers) --- */
+    .flip-word {
       display: inline-block;
       opacity: 0;
-      transform: rotateX(-90deg) translateY(8px);
-      transform-origin: center bottom;
-      will-change: transform, opacity;
-      transition: opacity 0.4s var(--ease-out-expo),
+      transform: translateY(0.4em);
+      transition: opacity 0.45s var(--ease-out-expo),
                   transform 0.5s var(--ease-out-expo);
     }
-    .flip-char.is-flipped {
+    .flip-word.is-flipped {
       opacity: 1;
-      transform: rotateX(0deg) translateY(0);
-    }
-    .flip-char.space-char {
-      width: 0.3em;
-    }
-    .flip-char.br-char {
-      display: block;
-      height: 0;
+      transform: translateY(0);
     }
     .flip-reveal {
       /* Container needs no special styles, chars are inline-block */
@@ -310,11 +301,10 @@
       .floating-mockup .plate {
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
       }
-      .flip-char {
+      .flip-word {
         opacity: 1 !important;
         transform: none !important;
         transition: none !important;
-        will-change: auto !important;
       }
     }
 
@@ -526,7 +516,7 @@
         <span class="wordmark wordmark-small flip-reveal">MetaPrompt</span>
       </div>
       <div class="footer-links">
-        <span class="label flip-reveal">Optimisation engine powered by OpenCode Zen</span>
+        <span class="label flip-reveal">Optimisation engine powered by GPT-OSS 120B</span>
       </div>
     </div>
     <div class="hairline-full" style="margin: 1.5rem 0 0 0;"></div>
@@ -570,43 +560,6 @@
       card.innerHTML = `<span class="model-name flip-reveal">${m.name}</span><span class="model-provider flip-reveal">${m.provider}</span><p class="model-trait flip-reveal">${m.trait}</p>`;
       modelsGrid.appendChild(card);
     });
-
-    /* Re-init flip-reveal for dynamically added model cards */
-    setTimeout(() => {
-      const flipEls = document.querySelectorAll(".model-card .flip-reveal");
-      flipEls.forEach(el => {
-        if (el.querySelector(".flip-char")) return; /* Already processed */
-        const text = el.textContent;
-        if (!text || text.trim().length === 0) return;
-        el.setAttribute("aria-label", text);
-        let charIndex = 0;
-        for (let i = 0; i < text.length; i++) {
-          const char = text[i];
-          const span = document.createElement("span");
-          span.className = "flip-char";
-          span.setAttribute("aria-hidden", "true");
-          if (char === " ") {
-            span.innerHTML = "&nbsp;";
-            span.classList.add("space-char");
-          } else {
-            span.textContent = char;
-          }
-          span.style.transitionDelay = `${Math.min(charIndex * 30, 600)}ms`;
-          el.appendChild(span);
-          charIndex++;
-        }
-        el.textContent = "";
-        const flipObserver = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              entry.target.querySelectorAll(".flip-char").forEach(c => c.classList.add("is-flipped"));
-              flipObserver.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0.1, rootMargin: "0px 0px -10% 0px" });
-        flipObserver.observe(el);
-      });
-    }, 100);
 
     userPrompt.addEventListener("input", () => {
       const len = userPrompt.value.length;
@@ -680,7 +633,7 @@
       if (!response.ok) {
         throw new Error(data.error || `Optimisation API error: ${response.status}`);
       }
-      if (!data.prompt) throw new Error("No response from OpenCode Zen");
+      if (!data.prompt) throw new Error("No response from GPT-OSS 120B");
 
       return { prompt: data.prompt, notes: data.notes || buildNotes(model) };
     }
@@ -728,63 +681,49 @@
       const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
       /* ============================================================
-         CHARACTER FLIP REVEAL SYSTEM
-         Wraps each character in a span and flips them in on scroll
+         WORD REVEAL SYSTEM
+         One span per word (not per character) with a short stagger.
+         ~5-10x fewer animated nodes than the old per-char flip, and
+         no will-change layers, which removes the load-time jank.
+         Model cards are created synchronously before this runs, so
+         they are picked up by the same pass.
          ============================================================ */
       function initFlipReveal() {
         const flipEls = document.querySelectorAll(".flip-reveal");
 
         flipEls.forEach(el => {
           const text = el.textContent;
-          if (!text || text.trim().length === 0) return;
+          if (!text || !text.trim()) return;
 
           /* Skip interactive elements */
           if (el.tagName === "TEXTAREA" || el.tagName === "INPUT" || el.tagName === "SELECT") return;
 
-          /* Save original display to preserve layout */
-          const originalDisplay = window.getComputedStyle(el).display;
-          const originalFontSize = window.getComputedStyle(el).fontSize;
-          const originalFontWeight = window.getComputedStyle(el).fontWeight;
-          const originalFontFamily = window.getComputedStyle(el).fontFamily;
-          const originalColor = window.getComputedStyle(el).color;
-          const originalLetterSpacing = window.getComputedStyle(el).letterSpacing;
-          const originalTextTransform = window.getComputedStyle(el).textTransform;
-          const originalLineHeight = window.getComputedStyle(el).lineHeight;
-
-          el.innerHTML = "";
           el.setAttribute("aria-label", text);
+          el.textContent = "";
 
-          let charIndex = 0;
-          for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            const span = document.createElement("span");
-            span.className = "flip-char";
-            span.setAttribute("aria-hidden", "true");
-
-            if (char === " ") {
-              span.innerHTML = "&nbsp;";
-              span.classList.add("space-char");
-            } else if (char === "\n") {
-              span.classList.add("br-char");
-            } else {
-              span.textContent = char;
+          const tokens = text.split(/(\s+)/);
+          let wordIndex = 0;
+          tokens.forEach(token => {
+            if (!token) return;
+            if (/^\s+$/.test(token)) {
+              /* Real text nodes keep natural line wrapping */
+              el.appendChild(document.createTextNode(" "));
+              return;
             }
-
-            /* Stagger: 30ms per character, max 600ms total */
-            const delay = Math.min(charIndex * 30, 600);
-            span.style.transitionDelay = `${delay}ms`;
-
+            const span = document.createElement("span");
+            span.className = "flip-word";
+            span.setAttribute("aria-hidden", "true");
+            span.textContent = token;
+            span.style.transitionDelay = `${Math.min(wordIndex * 20, 400)}ms`;
             el.appendChild(span);
-            charIndex++;
-          }
+            wordIndex++;
+          });
         });
 
-        /* IntersectionObserver for flip-reveal elements */
         const flipObserver = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
-              const chars = entry.target.querySelectorAll(".flip-char");
-              chars.forEach(c => c.classList.add("is-flipped"));
+              entry.target.querySelectorAll(".flip-word").forEach(c => c.classList.add("is-flipped"));
               flipObserver.unobserve(entry.target);
             }
           });

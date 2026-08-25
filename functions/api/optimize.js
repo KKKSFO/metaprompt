@@ -1,22 +1,22 @@
 /* ============================================================
-   Cloudflare Pages Function — /api/optimize
-   Keeps the OpenCode Zen API key on the server.
+   Cloudflare Worker — POST /api/optimize
+   Keeps the Groq API key on the server.
 
-   Set OPENCODE_API_KEY in Cloudflare Pages:
-   Settings → Environment variables → Add OPENCODE_API_KEY
+   Set GROQ_API_KEY in Cloudflare:
+   Settings → Variables and Secrets → Add GROQ_API_KEY
    ============================================================ */
 
-const OPENCODE_ZEN_ENDPOINT = "https://opencode.ai/zen/v1/chat/completions";
-const OPENCODE_MODEL = "nemotron-3.5-lightning-free";
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 
 export async function onRequestPost(context) {
-  const apiKey = context.env.OPENCODE_API_KEY;
+  const apiKey = context.env.GROQ_API_KEY;
 
   if (!apiKey) {
     return jsonResponse(
       {
         error:
-          "API key not configured. Add OPENCODE_API_KEY to your Cloudflare Pages environment variables.",
+          "API key not configured. Add GROQ_API_KEY to your Cloudflare Worker variables and secrets.",
       },
       500,
     );
@@ -37,14 +37,14 @@ export async function onRequestPost(context) {
   }
 
   try {
-    const response = await fetch(OPENCODE_ZEN_ENDPOINT, {
+    const response = await fetch(GROQ_ENDPOINT, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: OPENCODE_MODEL,
+        model: GROQ_MODEL,
         messages: [
           { role: "system", content: buildSystemPrompt(modelId) },
           { role: "user", content: prompt },
@@ -59,7 +59,7 @@ export async function onRequestPost(context) {
       const message =
         errorBody?.error?.message ||
         errorBody?.message ||
-        `OpenCode Zen API error: ${response.status}`;
+        `Groq API error: ${response.status}`;
       return jsonResponse({ error: message }, response.status);
     }
 
@@ -67,7 +67,7 @@ export async function onRequestPost(context) {
     const optimized = data?.choices?.[0]?.message?.content;
 
     if (typeof optimized !== "string" || !optimized.trim()) {
-      return jsonResponse({ error: "No response from OpenCode Zen" }, 502);
+      return jsonResponse({ error: "No response from GPT-OSS 120B" }, 502);
     }
 
     return jsonResponse({
